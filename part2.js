@@ -2,34 +2,39 @@ var rs = require("readline-sync");
 
 class Game {
   constructor() {
-    this.gridSize = "";
-    this.myGrid = "";
-    this.coordinate = [];
+    this.gridSize = 9;
+    this.gameBoard = {};
+    this.strikeLocation = [];
+    this.char = 1;
+
     this.shipCount = 5;
+
     this.ships = [
-      { name: "destroyer", cells: 2, coordinates: [] },
-      { name: "cruiser1", cells: 3, coordinates: [] },
-      { name: "cruiser2", cells: 3, coordinates: [] },
-      { name: "battleship", cells: 4, coordinates: [] },
-      { name: "carrier", cells: 5, coordinates: [] },
+      { name: "destroyer", size: 2, coordinates: [] },
+      { name: "cruiser1", size: 3, coordinates: [] },
+      { name: "cruiser2", size: 3, coordinates: [] },
+      { name: "battleship", size: 4, coordinates: [] },
+      { name: "carrier", size: 5, coordinates: [] },
     ];
-    this.attempts = [];
-    this.shipLocations = {};
+    // this.attempts = [];
+    // this.shipLocations = {};
+
+    this.occupiedSquares = [];
   }
 
   // functions
 
   beginGame() {
-    rs.keyIn("Press any key to start the game. ");
-    this.gridSize = rs.question(
-      `What size would you like your board? (Enter one number only) `,
-      {
-        limit: /^[1-9]$/i,
-        limitMessage: "That is not a proper entry. Try again. ",
-      }
-    );
-    this.myGrid = this.createGrid(this.gridSize);
-    this.placeShips(this.shipCount);
+    // rs.keyIn("Press any key to start the game. ");
+    // this.gridSize = rs.question(
+    //   `What size would you like your board? (Enter one number only) `,
+    //   {
+    //     limit: /^[1-9]$/i,
+    //     limitMessage: "That is not a proper entry. Try again. ",
+    //   }
+    // );
+    this.gameBoard = this.createGrid(this.gridSize);
+    this.startShipsProcess(this.shipCount);
     this.getCoordinate();
   }
 
@@ -44,42 +49,14 @@ class Game {
     return grid;
   }
 
-  //convert letter to number
-
-  getCoordinate() {
-    this.coordinate = rs.question(`Enter a location to strike i.e., 'A2'. `, {
-      limit: /^[abc][123]$/i,
-      limitMessage: "That is not a proper location. Try again.",
-    });
-    this.coordinate = this.coordinate.split("");
-    this.convertNumber(this.coordinate[1], 1);
-    this.sumChars(this.coordinate[0]);
-  }
-
-  convertNumber(n, i) {
-    this.coordinate[1] = n - i;
-  }
-
-  sumChars(s) {
-    var i,
-      n = s.length,
-      acc = 0;
-    for (i = 0; i < n; i++) {
-      acc += parseInt(s[i], 36) - 10;
-    }
-
-    return (
-      this.coordinate.splice(0, 1, acc),
-      this.attackPlay(this.coordinate[0], this.coordinate[1], this.myGrid)
-    );
-  }
-
   // place ship
 
-  placeShips(ships) {
-    for (let i = 0; i < ships; i++) {
-      this.generateRandomLocation("S", this.myGrid, this.gridSize);
+  startShipsProcess(count) {
+    for (let i = 0; i <= count; i++) {
+      this.generateRandomLocation("S", this.gameBoard, this.gridSize);
     }
+
+    console.table(this.gameBoard);
   }
 
   getRandomInt(max) {
@@ -87,24 +64,27 @@ class Game {
   }
 
   generateRandomLocation(c, grid, max) {
-    let didPlace = false;
-    while (!didPlace) {
-      let x = this.getRandomInt(max);
+    let foundEmptySpotAndDidPlace = false;
 
+    while (!foundEmptySpotAndDidPlace) {
+      let x = this.getRandomInt(max);
       let y = this.getRandomInt(max);
 
-      if (!this.shipLocations[`${x}-${y}`]) {
-        this.placeCharacterAtLocation(x, y, c, grid);
-
-        didPlace = true;
-        this.shipLocations[`${x}-${y}`] = true;
+      if (!this.occupiedSquares.includes(`${x}-${y}`)) {
+        this.placeShipStartingPointAtLocation(x, y, c, grid);
+        foundEmptySpotAndDidPlace = true;
+        this.char++;
       }
     }
   }
 
-  placeCharacterAtLocation(x, y, c, grid) {
-    grid[y][x] = c;
-    console.table(grid);
+  placeShipStartingPointAtLocation(x, y, c, grid, ship) {
+    for (let i = 0; i < 3; i++) {
+      grid[y][x + i] = this.char;
+
+      let xA = x + i;
+      this.occupiedSquares.push(`${xA}-${y}`);
+    }
   }
 
   //game play
@@ -134,6 +114,43 @@ class Game {
         this.getCoordinate()
       );
     }
+  }
+
+  //convert letter to number
+
+  getCoordinate() {
+    this.strikeLocation = rs.question(
+      `Enter a location to strike i.e., 'A2'. `,
+      {
+        limit: /^[a-j][123]$/i,
+        limitMessage: "That is not a proper location. Try again.",
+      }
+    );
+    this.strikeLocation = this.strikeLocation.split("");
+    this.convertNumber(this.strikeLocation[1], 1);
+    this.sumChars(this.strikeLocation[0]);
+  }
+
+  convertNumber(n, i) {
+    this.strikeLocation[1] = n - i;
+  }
+
+  sumChars(s) {
+    var i,
+      n = s.length,
+      acc = 0;
+    for (i = 0; i < n; i++) {
+      acc += parseInt(s[i], 36) - 10;
+    }
+
+    return (
+      this.strikeLocation.splice(0, 1, acc),
+      this.attackPlay(
+        this.strikeLocation[0],
+        this.strikeLocation[1],
+        this.gameBoard
+      )
+    );
   }
 
   endGame() {

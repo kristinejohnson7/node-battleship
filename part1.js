@@ -89,7 +89,7 @@ class Game {
 
   placeCharacterAtLocation(x, y, c, grid) {
     grid[y][x] = c;
-    console.table(grid);
+    // console.table(grid);
   }
 
   //game play
