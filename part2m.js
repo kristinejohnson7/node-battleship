@@ -5,15 +5,19 @@ class Game {
     this.gridSize = 9;
     this.gameBoard = {};
     this.strikeLocation = [];
-    this.char = 1;
-
     this.shipCount = 5;
-
     this.occupiedSquares = [];
   }
 
   beginGame() {
-    // rs.keyIn("Pr
+    // rs.keyIn("Press any key to start the game. ");
+    // this.gridSize = rs.question(
+    //   `What size would you like your board? (Enter one number only) `,
+    //   {
+    //     limit: /^[1-9]$/i,
+    //     limitMessage: "That is not a proper entry. Try again. ",
+    //   }
+    // );
     this.gameBoard = this.createGrid(this.gridSize);
     this.startShipsProcess(this.shipCount);
   }
@@ -33,9 +37,8 @@ class Game {
 
   startShipsProcess(count) {
     for (let i = 0; i <= count; i++) {
-      this.generateRandomLocation("S", this.gameBoard, this.gridSize);
+      this.generateRandomLocation(this.gameBoard, this.gridSize);
     }
-
     console.table(this.gameBoard);
     process.exit();
   }
@@ -44,7 +47,7 @@ class Game {
     return Math.floor(Math.random() * Math.floor(max));
   }
 
-  generateRandomLocation(c, grid, max) {
+  generateRandomLocation(grid, max) {
     let foundEmptySpotAndDidPlace = false;
     let allSquaresAreAvailable = false;
     let directionString;
@@ -62,12 +65,12 @@ class Game {
           this.placeShipStartingPointAtLocation(
             x,
             y,
-            this.char,
+            "S",
             grid,
             directionString
           );
           foundEmptySpotAndDidPlace = true;
-          this.char++;
+          // this.char++;
         }
       }
     }
@@ -75,7 +78,7 @@ class Game {
 
   checkAllSquaresBasedOnDirectionFromPoint(column, row) {
     let valid = false;
-    let direction = 2; //Math.ceil(Math.random() * 2);
+    let direction = Math.floor(Math.random() * 4) + 1;
     let directionString = "";
 
     if (direction === 1) {
@@ -83,9 +86,8 @@ class Game {
       for (let index = 0; index < 3; index++) {
         if (
           column + index >= 9 ||
-          this.gameBoard[row][column + index] === "s" ||
+          this.gameBoard[row][column + index] === "S" ||
           this.gameBoard[row][column + index] === undefined
-          // this.occupiedSquares.includes(`${row}-${column + index}`)
         ) {
           directionString = "right";
           return [valid, directionString];
@@ -94,13 +96,12 @@ class Game {
       valid = true;
       directionString = "right";
       return [valid, directionString];
-    }
-    if (direction === 2) {
+    } else if (direction === 2) {
       // left
       for (let index = 0; index < 3; index++) {
         if (
           column - index < 0 ||
-          this.gameBoard[row][column - index] === "s" ||
+          this.gameBoard[row][column - index] === "S" ||
           this.gameBoard[row][column - index] === undefined
         ) {
           directionString = "left";
@@ -110,6 +111,36 @@ class Game {
       valid = true;
       directionString = "left";
       return [valid, directionString];
+    } else if (direction === 3) {
+      // down
+      for (let index = 0; index < 2; index++) {
+        if (
+          row + index >= 9 ||
+          this.gameBoard[row + index][column] === "S" ||
+          this.gameBoard[row + index][column] === undefined
+        ) {
+          directionString = "down";
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "down";
+      return [valid, directionString];
+    } else if (direction === 4) {
+      // up
+      for (let index = 0; index < 2; index++) {
+        if (
+          row - index < 0 ||
+          this.gameBoard[row - index][column] === "S" ||
+          this.gameBoard[row - index][column] === undefined
+        ) {
+          directionString = "up";
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "up";
+      return [valid, directionString];
     }
   }
 
@@ -117,21 +148,37 @@ class Game {
     // let direction;
 
     if (direction === "right") {
+      console.log(direction);
       for (let i = 0; i < 3; i++) {
-        grid[y][x + i] = "s"; //this.char;
+        grid[y][x + i] = c; //this.char;
 
         let xA = x + i;
         this.occupiedSquares.push(`${xA}-${y}`);
       }
     } else if (direction === "left") {
+      console.log(direction);
       for (let i = 0; i < 3; i++) {
-        grid[y][x - i] = "s"; //this.char;
+        grid[y][x - i] = c; //this.char;
 
         let xA = x - i;
         this.occupiedSquares.push(`${xA}-${y}`);
       }
-    } else {
-      console.log("wtf");
+    } else if (direction === "down") {
+      console.log(direction);
+      for (let i = 0; i < 2; i++) {
+        grid[y + i][x] = c; //this.char;
+
+        let yA = y + i;
+        this.occupiedSquares.push(`${x}-${yA}`);
+      }
+    } else if (direction === "up") {
+      console.log(direction);
+      for (let i = 0; i < 2; i++) {
+        grid[y - i][x] = c; //this.char;
+
+        let yA = y - i;
+        this.occupiedSquares.push(`${x}-${yA}`);
+      }
     }
   }
 }
