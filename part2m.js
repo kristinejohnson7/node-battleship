@@ -7,6 +7,13 @@ class Game {
     this.strikeLocation = [];
     this.shipCount = 5;
     this.occupiedSquares = [];
+    this.ships = [
+      { name: "destroyer", size: 2, coordinates: [] },
+      { name: "cruiser1", size: 3, coordinates: [] },
+      { name: "cruiser2", size: 3, coordinates: [] },
+      { name: "battleship", size: 4, coordinates: [] },
+      { name: "carrier", size: 5, coordinates: [] },
+    ];
   }
 
   beginGame() {
@@ -70,7 +77,6 @@ class Game {
             directionString
           );
           foundEmptySpotAndDidPlace = true;
-          // this.char++;
         }
       }
     }
@@ -150,34 +156,30 @@ class Game {
     if (direction === "right") {
       console.log(direction);
       for (let i = 0; i < 3; i++) {
-        grid[y][x + i] = c; //this.char;
+        grid[y][x + i] = c;
 
-        let xA = x + i;
-        this.occupiedSquares.push(`${xA}-${y}`);
+        this.occupiedSquares.push(`${x + i}-${y}`);
       }
     } else if (direction === "left") {
       console.log(direction);
       for (let i = 0; i < 3; i++) {
-        grid[y][x - i] = c; //this.char;
+        grid[y][x - i] = c;
 
-        let xA = x - i;
-        this.occupiedSquares.push(`${xA}-${y}`);
+        this.occupiedSquares.push(`${x - i}-${y}`);
       }
     } else if (direction === "down") {
       console.log(direction);
       for (let i = 0; i < 2; i++) {
-        grid[y + i][x] = c; //this.char;
+        grid[y + i][x] = c;
 
-        let yA = y + i;
-        this.occupiedSquares.push(`${x}-${yA}`);
+        this.occupiedSquares.push(`${x}-${y + i}`);
       }
     } else if (direction === "up") {
       console.log(direction);
       for (let i = 0; i < 2; i++) {
-        grid[y - i][x] = c; //this.char;
+        grid[y - i][x] = c;
 
-        let yA = y - i;
-        this.occupiedSquares.push(`${x}-${yA}`);
+        this.occupiedSquares.push(`${x}-${y - i}`);
       }
     }
   }
