@@ -83,8 +83,9 @@ class Game {
       for (let index = 0; index < 3; index++) {
         if (
           column + index >= 9 ||
-          this.gameBoard[row][column + index] === NaN ||
+          this.gameBoard[row][column + index] === "s" ||
           this.gameBoard[row][column + index] === undefined
+          // this.occupiedSquares.includes(`${row}-${column + index}`)
         ) {
           directionString = "right";
           return [valid, directionString];
@@ -99,8 +100,8 @@ class Game {
       for (let index = 0; index < 3; index++) {
         if (
           column - index < 0 ||
-          this.gameBoard[row][column + index] === NaN ||
-          this.gameBoard[row][column + index] === undefined
+          this.gameBoard[row][column - index] === "s" ||
+          this.gameBoard[row][column - index] === undefined
         ) {
           directionString = "left";
           return [valid, directionString];
@@ -117,14 +118,14 @@ class Game {
 
     if (direction === "right") {
       for (let i = 0; i < 3; i++) {
-        grid[y][x + i] = this.char;
+        grid[y][x + i] = "s"; //this.char;
 
         let xA = x + i;
         this.occupiedSquares.push(`${xA}-${y}`);
       }
     } else if (direction === "left") {
       for (let i = 0; i < 3; i++) {
-        grid[y][x - i] = this.char;
+        grid[y][x - i] = "s"; //this.char;
 
         let xA = x - i;
         this.occupiedSquares.push(`${xA}-${y}`);
