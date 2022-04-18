@@ -47,14 +47,25 @@ class Game {
   generateRandomLocation(c, grid, max) {
     let foundEmptySpotAndDidPlace = false;
     let allSquaresAreAvailable = false;
+    let directionString;
+    let valid;
 
     while (!foundEmptySpotAndDidPlace) {
       let x = this.getRandomInt(max);
       let y = this.getRandomInt(max);
 
       if (!this.occupiedSquares.includes(`${x}-${y}`)) {
-        if (this.checkAllSquaresBasedOnDirectionFromPoint(x, y)) {
-          this.placeShipStartingPointAtLocation(x, y, c, grid);
+        [valid, directionString] =
+          this.checkAllSquaresBasedOnDirectionFromPoint(x, y);
+
+        if (valid) {
+          this.placeShipStartingPointAtLocation(
+            x,
+            y,
+            this.char,
+            grid,
+            directionString
+          );
           foundEmptySpotAndDidPlace = true;
           this.char++;
         }
@@ -64,9 +75,10 @@ class Game {
 
   checkAllSquaresBasedOnDirectionFromPoint(column, row) {
     let valid = false;
-    let randomDirection = 2; //Math.ceil(Math.random() * 2);
+    let direction = 2; //Math.ceil(Math.random() * 2);
+    let directionString = "";
 
-    if (randomDirection === 2) {
+    if (direction === 1) {
       // right
       for (let index = 0; index < 3; index++) {
         if (
@@ -74,20 +86,51 @@ class Game {
           this.gameBoard[row][column + index] === NaN ||
           this.gameBoard[row][column + index] === undefined
         ) {
-          return valid;
+          directionString = "right";
+          return [valid, directionString];
         }
       }
       valid = true;
-      return valid;
+      directionString = "right";
+      return [valid, directionString];
+    }
+    if (direction === 2) {
+      // left
+      for (let index = 0; index < 3; index++) {
+        if (
+          column - index < 0 ||
+          this.gameBoard[row][column + index] === NaN ||
+          this.gameBoard[row][column + index] === undefined
+        ) {
+          directionString = "left";
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "left";
+      return [valid, directionString];
     }
   }
 
-  placeShipStartingPointAtLocation(x, y, c, grid, ship) {
-    for (let i = 0; i < 3; i++) {
-      grid[y][x + i] = this.char;
+  placeShipStartingPointAtLocation(x, y, c, grid, direction) {
+    // let direction;
 
-      let xA = x + i;
-      this.occupiedSquares.push(`${xA}-${y}`);
+    if (direction === "right") {
+      for (let i = 0; i < 3; i++) {
+        grid[y][x + i] = this.char;
+
+        let xA = x + i;
+        this.occupiedSquares.push(`${xA}-${y}`);
+      }
+    } else if (direction === "left") {
+      for (let i = 0; i < 3; i++) {
+        grid[y][x - i] = this.char;
+
+        let xA = x - i;
+        this.occupiedSquares.push(`${xA}-${y}`);
+      }
+    } else {
+      console.log("wtf");
     }
   }
 }
