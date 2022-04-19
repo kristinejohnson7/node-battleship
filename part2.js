@@ -3,12 +3,10 @@ var rs = require("readline-sync");
 class Game {
   constructor() {
     this.gridSize = 9;
-    this.gameBoard = [];
+    this.gameBoard = {};
     this.strikeLocation = [];
-    this.char = 1;
-
-    this.shipCount = 1;
-
+    this.shipCount = 5;
+    // this.occupiedSquares = [];
     this.ships = [
       { name: "destroyer", size: 2, coordinates: [] },
       { name: "cruiser1", size: 3, coordinates: [] },
@@ -16,25 +14,19 @@ class Game {
       { name: "battleship", size: 4, coordinates: [] },
       { name: "carrier", size: 5, coordinates: [] },
     ];
-    // this.attempts = [];
-    // this.shipLocations = {};
-
-    this.occupiedSquares = [];
   }
 
-  // functions
-
   beginGame() {
-    // rs.keyIn("Press any key to start the game. ");
-    // this.gridSize = rs.question(
-    //   `What size would you like your board? (Enter one number only) `,
-    //   {
-    //     limit: /^[1-9]$/i,
-    //     limitMessage: "That is not a proper entry. Try again. ",
-    //   }
-    // );
+    rs.keyIn("Press any key to start the game. ");
+    this.gridSize = rs.question(
+      `What size would you like your board? (Enter one number only) `,
+      {
+        limit: /^[1-9]$/i,
+        limitMessage: "That is not a proper entry. Try again. ",
+      }
+    );
     this.gameBoard = this.createGrid(this.gridSize);
-    this.startShipsProcess(this.shipCount);
+    this.startShipsProcess();
     this.getCoordinate();
   }
 
@@ -51,158 +43,157 @@ class Game {
 
   // place ship
 
-  startShipsProcess(count) {
-    for (let i = 0; i <= 1; i++) {
-      this.generateRandomLocation("S", this.gameBoard, this.gridSize);
+  startShipsProcess() {
+    for (const ship of this.ships) {
+      this.generateRandomLocation(this.gameBoard, this.gridSize, ship);
     }
-
     console.table(this.gameBoard);
-    process.exit();
+    // process.exit();
   }
 
   getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
   }
 
-  generateRandomLocation(c, grid, max) {
-    let didPlace = false;
-    let direction = "";
-    let x, y;
+  generateRandomLocation(grid, max, ship) {
+    let foundEmptySpotAndDidPlace = false;
+    let allSquaresAreAvailable = false;
+    let directionString;
+    let valid;
 
-    while (!didPlace) {
-      x = this.getRandomInt(max);
-      y = this.getRandomInt(max);
+    while (!foundEmptySpotAndDidPlace) {
+      let x = this.getRandomInt(max);
+      let y = this.getRandomInt(max);
 
-      [x, y, direction, didPlace] = this.locationChecker(x, y);
+      [valid, directionString] = this.checkAllSquaresBasedOnDirectionFromPoint(
+        x,
+        y,
+        ship
+      );
+
+      if (valid) {
+        this.placeShipStartingPointAtLocation(
+          x,
+          y,
+          "S",
+          grid,
+          directionString,
+          ship
+        );
+        foundEmptySpotAndDidPlace = true;
+      }
     }
+  }
+
+  checkAllSquaresBasedOnDirectionFromPoint(column, row, ship) {
+    let valid = false;
+    let direction = Math.floor(Math.random() * 4) + 1;
+    let directionString = "";
+
+    if (direction === 1) {
+      // right
+      for (let index = 0; index < ship.size; index++) {
+        if (
+          column + index >= this.gameBoard.length ||
+          this.gameBoard[row][column + index] === "S" ||
+          this.gameBoard[row][column + index] === undefined
+        ) {
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "right";
+      return [valid, directionString];
+    } else if (direction === 2) {
+      // left
+      for (let index = 0; index < ship.size; index++) {
+        if (
+          column - index < 0 ||
+          this.gameBoard[row][column - index] === "S" ||
+          this.gameBoard[row][column - index] === undefined
+        ) {
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "left";
+      return [valid, directionString];
+    } else if (direction === 3) {
+      // down
+      for (let index = 0; index < ship.size; index++) {
+        if (
+          row + index >= this.gameBoard.length ||
+          this.gameBoard[row + index][column] === "S" ||
+          this.gameBoard[row + index][column] === undefined
+        ) {
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "down";
+      return [valid, directionString];
+    } else if (direction === 4) {
+      // up
+      for (let index = 0; index < ship.size; index++) {
+        if (
+          row - index < 0 ||
+          this.gameBoard[row - index][column] === "S" ||
+          this.gameBoard[row - index][column] === undefined
+        ) {
+          return [valid, directionString];
+        }
+      }
+      valid = true;
+      directionString = "up";
+      return [valid, directionString];
+    }
+  }
+
+  placeShipStartingPointAtLocation(x, y, c, grid, direction, ship) {
+    // let direction;
 
     if (direction === "right") {
-      for (let i = 0; i < 5; i++) {
-        grid[y][x + i] = "R";
-        let xA = x + i;
-        // console.log(xA + "this is XA");
-        this.occupiedSquares.push(`${xA}-${y}`);
-        // grid[y][xA] = "S";
+      console.log(direction);
+      console.log(ship.size);
+      for (let i = 0; i < ship.size; i++) {
+        grid[y][x + i] = c;
+
+        ship.coordinates.push(`${x + i}-${y}`);
       }
     } else if (direction === "left") {
-      for (let i = 0; i < 5; i++) {
-        grid[y][x - i] = "L";
-        let xB = x - i;
-        // console.log(xB + "this is XB");
-        this.occupiedSquares.push(`${xB}-${y}`);
-        // grid[y][xB] = "S";
+      console.log(direction);
+      console.log(ship.size);
+      for (let i = 0; i < ship.size; i++) {
+        grid[y][x - i] = c;
+
+        ship.coordinates.push(`${x - i}-${y}`);
+      }
+    } else if (direction === "down") {
+      console.log(direction);
+      console.log(ship.size);
+      for (let i = 0; i < ship.size; i++) {
+        grid[y + i][x] = c;
+
+        ship.coordinates.push(`${x}-${y + i}`);
+      }
+    } else if (direction === "up") {
+      console.log(direction);
+      console.log(ship.size);
+      for (let i = 0; i < ship.size; i++) {
+        grid[y - i][x] = c;
+
+        ship.coordinates.push(`${x}-${y - i}`);
       }
     }
   }
 
-  locationChecker(x, y) {
-    let didPlace = false;
-    let direction;
-    let randomDirection = Math.ceil(Math.random() * 2);
-
-    if (randomDirection === 1) {
-      //right
-      for (let i = 0; i < 5; i++) {
-        if (
-          y + i > this.gameBoard.length ||
-          this.gameBoard[y][x + i] === NaN ||
-          this.gameBoard[y][x + i] === undefined
-        ) {
-          console.log(`direction right about to set false`);
-          console.log(`false with x:${x} & y:${y}`);
-          // didPlace = false;
-        } else {
-          didPlace = true;
-        }
-      }
-
-      direction = "right";
-      return [x, y, direction, didPlace];
-    }
-
-    if (randomDirection === 2) {
-      //left
-      for (let i = 5; i > 0; i--) {
-        // console.log(y);
-        if (
-          y - i <= 0 || //this.gameBoard[0] ||
-          this.gameBoard[y][x - i] === NaN ||
-          this.gameBoard[y][x - i] === "undefined"
-        ) {
-          didPlace = false;
-          console.log(`direction left about to set false`);
-          console.log(`false with x:${x} & y:${y}`);
-        } else {
-          didPlace = true;
-          // console.log(`direction left about to set true`);
-        }
-      }
-
-      // console.log(didPlace, direction, y, x);
-      direction = "left";
-      // console.log(this.placeCheckedShips(x, y, didPlace, direction));
-      // console.log(didPlace, direction, y, x);
-
-      return [x, y, direction, didPlace];
-    }
-  }
-
-  // placeCheckedShips(x, y, c, grid, direction) {
-  //   if (direction === "right") {
-  //     for (let i = 0; i < 3; i++) {
-  //       grid[y][x + i] = this.char;
-  //       let xA = x + i;
-  //       // console.log(xA + "this is XA");
-  //       this.occupiedSquares.push(`${xA}-${y}`);
-  //       // grid[y][xA] = "S";
-  //     }
-  //   } else if (direction === "left") {
-  //     for (let i = 0; i < 3; i++) {
-  //       grid[y][x - i] = this.char;
-  //       let xB = x - i;
-  //       // console.log(xB + "this is XB");
-  //       this.occupiedSquares.push(`${xB}-${y}`);
-  //       // grid[y][xB] = "S";
-  //     }
-  //   }
-  // }
-
-  //game play
-
-  attackPlay(y, x, grid) {
-    if (grid[y][x] == "S") {
-      grid[y][x] = "!";
-
-      this.shipCount--;
-      if (this.shipCount === 0) {
-        this.endGame();
-      } else
-        return (
-          true,
-          console.log(
-            `Hit. You have sunk a battleship. ${this.shipCount} ship remaining.`
-          ),
-          this.getCoordinate()
-        );
-    } else if (grid[y][x] == "-") {
-      grid[y][x] = "x";
-      return false, console.log("You have missed!"), this.getCoordinate();
-    } else {
-      return (
-        false,
-        console.log("You have already picked this location. Miss!"),
-        this.getCoordinate()
-      );
-    }
-  }
-
-  //convert letter to number
+  //convert strike coordinate letter to number
 
   getCoordinate() {
     this.strikeLocation = rs.question(
       `Enter a location to strike i.e., 'A2'. `,
       {
-        limit: /^[a-j][123]$/i,
+        limit: /^[a-j][1-9]$/i,
         limitMessage: "That is not a proper location. Try again.",
       }
     );
@@ -231,6 +222,51 @@ class Game {
         this.gameBoard
       )
     );
+  }
+
+  //game play
+
+  trackShipSunkCount(y, x, grid) {
+    for (const ship of this.ships) {
+      if (ship.coordinates.includes(`${x}-${y}`)) {
+        if (grid[y][x] === "!") {
+          ship.size--;
+          if (ship.size === 0) {
+            this.shipCount--;
+            if (this.shipCount === 0) {
+              this.endGame();
+            } else {
+              console.log(
+                `Hit. You have sunk a battleship. ${this.shipCount} ship remaining.`
+              ),
+                this.getCoordinate();
+            }
+          } else {
+            console.log(
+              `Hit! The ship is still standing! There are ${this.shipCount} remaining!`
+            ),
+              this.getCoordinate();
+          }
+        }
+      }
+    }
+  }
+
+  attackPlay(y, x, grid) {
+    if (grid[y][x] == "S") {
+      (grid[y][x] = "!"), this.trackShipSunkCount(y, x, grid);
+      if (this.shipCount === 0) {
+        this.endGame();
+      }
+    } else if (grid[y][x] == "-") {
+      grid[y][x] = "x";
+      return console.log("You have missed!"), this.getCoordinate();
+    } else {
+      return (
+        console.log("You have already picked this location. Miss!"),
+        this.getCoordinate()
+      );
+    }
   }
 
   endGame() {
