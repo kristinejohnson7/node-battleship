@@ -6,7 +6,7 @@ class Game {
     this.gameBoard = {};
     this.strikeLocation = [];
     this.shipCount = 5;
-    this.occupiedSquares = [];
+    // this.occupiedSquares = [];
     this.ships = [
       { name: "destroyer", size: 2, coordinates: [] },
       { name: "cruiser1", size: 3, coordinates: [] },
@@ -17,14 +17,14 @@ class Game {
   }
 
   beginGame() {
-    // rs.keyIn("Press any key to start the game. ");
-    // this.gridSize = rs.question(
-    //   `What size would you like your board? (Enter one number only) `,
-    //   {
-    //     limit: /^[1-9]$/i,
-    //     limitMessage: "That is not a proper entry. Try again. ",
-    //   }
-    // );
+    rs.keyIn("Press any key to start the game. ");
+    this.gridSize = rs.question(
+      `What size would you like your board? (Enter one number only) `,
+      {
+        limit: /^[1-9]$/i,
+        limitMessage: "That is not a proper entry. Try again. ",
+      }
+    );
     this.gameBoard = this.createGrid(this.gridSize);
     this.startShipsProcess();
     this.getCoordinate();
@@ -48,7 +48,7 @@ class Game {
       this.generateRandomLocation(this.gameBoard, this.gridSize, ship);
     }
     console.table(this.gameBoard);
-    process.exit();
+    // process.exit();
   }
 
   getRandomInt(max) {
@@ -65,21 +65,22 @@ class Game {
       let x = this.getRandomInt(max);
       let y = this.getRandomInt(max);
 
-      if (!this.occupiedSquares.includes(`${x}-${y}`)) {
-        [valid, directionString] =
-          this.checkAllSquaresBasedOnDirectionFromPoint(x, y, ship);
+      [valid, directionString] = this.checkAllSquaresBasedOnDirectionFromPoint(
+        x,
+        y,
+        ship
+      );
 
-        if (valid) {
-          this.placeShipStartingPointAtLocation(
-            x,
-            y,
-            "S",
-            grid,
-            directionString,
-            ship
-          );
-          foundEmptySpotAndDidPlace = true;
-        }
+      if (valid) {
+        this.placeShipStartingPointAtLocation(
+          x,
+          y,
+          "S",
+          grid,
+          directionString,
+          ship
+        );
+        foundEmptySpotAndDidPlace = true;
       }
     }
   }
@@ -93,11 +94,10 @@ class Game {
       // right
       for (let index = 0; index < ship.size; index++) {
         if (
-          column + index >= 9 ||
+          column + index >= this.gameBoard.length ||
           this.gameBoard[row][column + index] === "S" ||
           this.gameBoard[row][column + index] === undefined
         ) {
-          // directionString = "right";
           return [valid, directionString];
         }
       }
@@ -112,7 +112,6 @@ class Game {
           this.gameBoard[row][column - index] === "S" ||
           this.gameBoard[row][column - index] === undefined
         ) {
-          // directionString = "left";
           return [valid, directionString];
         }
       }
@@ -123,11 +122,10 @@ class Game {
       // down
       for (let index = 0; index < ship.size; index++) {
         if (
-          row + index >= 9 ||
+          row + index >= this.gameBoard.length ||
           this.gameBoard[row + index][column] === "S" ||
           this.gameBoard[row + index][column] === undefined
         ) {
-          // directionString = "down";
           return [valid, directionString];
         }
       }
@@ -142,7 +140,6 @@ class Game {
           this.gameBoard[row - index][column] === "S" ||
           this.gameBoard[row - index][column] === undefined
         ) {
-          // directionString = "up";
           return [valid, directionString];
         }
       }
@@ -196,7 +193,7 @@ class Game {
     this.strikeLocation = rs.question(
       `Enter a location to strike i.e., 'A2'. `,
       {
-        limit: /^[a-j][123]$/i,
+        limit: /^[a-j][1-9]$/i,
         limitMessage: "That is not a proper location. Try again.",
       }
     );
@@ -232,6 +229,11 @@ class Game {
   attackPlay(y, x, grid) {
     if (grid[y][x] == "S") {
       grid[y][x] = "!";
+
+      // find which ship.coordinates contains this y,x.
+      //once you know ship
+      //check all coords for that ship === !
+      // if YES, THEN count --
 
       this.shipCount--;
       if (this.shipCount === 0) {
