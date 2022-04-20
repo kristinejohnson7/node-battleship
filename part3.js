@@ -2,7 +2,6 @@ var rs = require("readline-sync");
 
 class Game {
   constructor() {
-    // this.gridSize = 9;
     this.gameBoard = [];
     this.strikeLocation = [];
     this.shipCount = 5;
@@ -25,7 +24,7 @@ class Game {
       }
     );
     this.gameBoard = this.createGrid(this.gridSize);
-    this.printGrid(this.gameBoard);
+    this.printGrid(this.gameBoard, true);
     this.startShipsProcess();
     this.getCoordinate();
   }
@@ -88,36 +87,24 @@ class Game {
   }
 
   generateRandomLocation(grid, max, ship) {
-    let foundEmptySpotAndDidPlace = false;
-    let allSquaresAreAvailable = false;
+    let didPlace = false;
     let directionString;
     let valid;
 
-    while (!foundEmptySpotAndDidPlace) {
+    while (!didPlace) {
       let x = this.getRandomInt(max);
       let y = this.getRandomInt(max);
 
-      [valid, directionString] = this.checkAllSquaresBasedOnDirectionFromPoint(
-        x,
-        y,
-        ship
-      );
+      [valid, directionString] = this.generateRandomDirection(x, y, ship);
 
       if (valid) {
-        this.placeShipStartingPointAtLocation(
-          x,
-          y,
-          "S",
-          grid,
-          directionString,
-          ship
-        );
-        foundEmptySpotAndDidPlace = true;
+        this.placeShip(x, y, "S", grid, directionString, ship);
+        didPlace = true;
       }
     }
   }
 
-  checkAllSquaresBasedOnDirectionFromPoint(column, row, ship) {
+  generateRandomDirection(column, row, ship) {
     let valid = false;
     let direction = Math.floor(Math.random() * 4) + 1;
     let directionString = "";
@@ -181,7 +168,7 @@ class Game {
     }
   }
 
-  placeShipStartingPointAtLocation(x, y, c, grid, direction, ship) {
+  placeShip(x, y, c, grid, direction, ship) {
     // let direction;
 
     if (direction === "right") {
