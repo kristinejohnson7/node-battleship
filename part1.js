@@ -2,8 +2,8 @@ var rs = require("readline-sync");
 
 class Game {
   constructor() {
-    this.gridSize = 3;
-    this.myGrid = this.createGrid(this.gridSize);
+    this.boardSize = 3;
+    this.myBoard = this.createBoard(this.boardSize);
     this.coordinate = [];
     this.shipCount = 2;
     this.attempts = [];
@@ -18,15 +18,15 @@ class Game {
     this.getCoordinate();
   }
 
-  createGrid(size) {
-    let grid = [];
+  createBoard(size) {
+    let board = [];
     for (let i = 0; i < size; i++) {
-      grid[i] = [];
+      board[i] = [];
       for (let j = 0; j < size; j++) {
-        grid[i][j] = "-";
+        board[i][j] = "-";
       }
     }
-    return grid;
+    return board;
   }
 
   //convert letter to number
@@ -55,7 +55,7 @@ class Game {
 
     return (
       this.coordinate.splice(0, 1, acc),
-      this.attackPlay(this.coordinate[0], this.coordinate[1], this.myGrid)
+      this.attackPlay(this.coordinate[0], this.coordinate[1], this.myBoard)
     );
   }
 
@@ -63,7 +63,7 @@ class Game {
 
   placeShips(ships) {
     for (let i = 0; i < ships; i++) {
-      this.generateRandomLocation("S", this.myGrid, this.gridSize);
+      this.generateRandomLocation("S", this.myBoard, this.boardSize);
     }
   }
 
@@ -71,7 +71,7 @@ class Game {
     return Math.floor(Math.random() * Math.floor(max));
   }
 
-  generateRandomLocation(c, grid, max) {
+  generateRandomLocation(c, board, max) {
     let didPlace = false;
     while (!didPlace) {
       let x = this.getRandomInt(max);
@@ -79,7 +79,7 @@ class Game {
       let y = this.getRandomInt(max);
 
       if (!this.shipLocations[`${x}-${y}`]) {
-        this.placeCharacterAtLocation(x, y, c, grid);
+        this.placeCharacterAtLocation(x, y, c, board);
 
         didPlace = true;
         this.shipLocations[`${x}-${y}`] = true;
@@ -87,16 +87,16 @@ class Game {
     }
   }
 
-  placeCharacterAtLocation(x, y, c, grid) {
-    grid[y][x] = c;
+  placeCharacterAtLocation(x, y, c, board) {
+    board[y][x] = c;
     // console.table(grid);
   }
 
   //game play
 
-  attackPlay(y, x, grid) {
-    if (grid[y][x] == "S") {
-      grid[y][x] = "!";
+  attackPlay(y, x, board) {
+    if (board[y][x] == "S") {
+      board[y][x] = "!";
 
       this.shipCount--;
       if (this.shipCount === 0) {
@@ -109,8 +109,8 @@ class Game {
           ),
           this.getCoordinate()
         );
-    } else if (grid[y][x] == "-") {
-      grid[y][x] = "x";
+    } else if (board[y][x] == "-") {
+      board[y][x] = "x";
       return false, console.log("You have missed!"), this.getCoordinate();
     } else {
       return (

@@ -26,7 +26,7 @@ class Game {
 
   //create game board
 
-  createGrid(size) {
+  createBoard(size) {
     let board = [];
     for (let i = 0; i < size; i++) {
       board[i] = [];
@@ -39,7 +39,7 @@ class Game {
 
   //print game board
 
-  printGrid(board, isEnemy = false) {
+  printBoard(board, isEnemy = false) {
     const headers = this.createHeaders(board.length); //x-axis
     console.log(headers);
     for (let i = 0; i < board.length; i++) {
@@ -72,7 +72,7 @@ class Game {
 
   startShipsProcess(ships, board) {
     for (const ship of ships) {
-      this.generateRandomLocation(board, this.gridSize, ship);
+      this.generateRandomLocation(board, this.boardSize, ship);
     }
   }
 
@@ -260,7 +260,7 @@ class User extends Game {
               console.log(
                 `Hit. You have sunk a battleship. ${this.computerShipCount} ships remaining.`
               );
-              this.printGrid(board, true);
+              this.printBoard(board, true);
               this.drawBreak();
               this.strikeLoop();
             }
@@ -268,7 +268,7 @@ class User extends Game {
             console.log(
               `Hit! The ship is still standing! There are ${this.computerShipCount} remaining!`
             );
-            this.printGrid(board, true);
+            this.printBoard(board, true);
             this.drawBreak();
             this.strikeLoop();
           }
@@ -284,12 +284,12 @@ class User extends Game {
     } else if (board[y][x] == "-") {
       board[y][x] = "O";
       console.log("You have missed!");
-      this.printGrid(board, true);
+      this.printBoard(board, true);
       this.drawBreak();
       this.strikeLoop();
     } else {
       console.log("You have already picked this location. Miss!");
-      this.printGrid(board, true);
+      this.printBoard(board, true);
       this.strikeLoop();
     }
   }
@@ -304,7 +304,7 @@ class Computer extends User {
     let a = Math.floor(Math.random() * Math.floor(max));
     let b = Math.floor(Math.random() * Math.floor(max));
     if (this.computerAttackLog.includes(`${a}-${b}`)) {
-      this.computerStrike(this.myGameBoard, this.gridSize);
+      this.computerStrike(this.myGameBoard, this.boardSize);
     } else {
       this.computerAttackLog.push(`${a}-${b}`);
       this.computerAttack(a, b, board);
@@ -354,16 +354,16 @@ class Start extends Computer {
   }
   beginGame() {
     rs.keyIn("Press any key to start the game. ");
-    this.gridSize = rs.question(
+    this.boardSize = rs.question(
       `What size would you like your boards? (Enter one number only) `,
       {
         limit: /^([1-9]|10)$/i,
         limitMessage: "That is not a proper entry. Try again. ",
       }
     );
-    this.myGameBoard = this.createGrid(this.gridSize);
-    this.computerGameBoard = this.createGrid(this.gridSize);
-    this.printGrid(this.computerGameBoard, true);
+    this.myGameBoard = this.createBoard(this.boardSize);
+    this.computerGameBoard = this.createBoard(this.boardSize);
+    this.printBoard(this.computerGameBoard, true);
     this.startShipsProcess(this.myShips, this.myGameBoard);
     this.startShipsProcess(this.computerShips, this.computerGameBoard);
     this.strikeLoop();
@@ -371,7 +371,7 @@ class Start extends Computer {
 
   strikeLoop() {
     while (this.computerShipCount > 0 && this.myShipCount > 0) {
-      this.computerStrike(this.myGameBoard, this.gridSize);
+      this.computerStrike(this.myGameBoard, this.boardSize);
       this.getCoordinate(this.computerGameBoard);
     }
   }

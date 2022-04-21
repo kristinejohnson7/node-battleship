@@ -16,41 +16,41 @@ class Game {
 
   beginGame() {
     rs.keyIn("Press any key to start the game. ");
-    this.gridSize = rs.question(
+    this.boardSize = rs.question(
       `What size would you like your board? (Enter one number only) `,
       {
         limit: /^([1-9]|10)$/i,
         limitMessage: "That is not a proper entry. Try again. ",
       }
     );
-    this.gameBoard = this.createGrid(this.gridSize);
-    this.printGrid(this.gameBoard, true);
+    this.gameBoard = this.createBoard(this.boardSize);
+    this.printBoard(this.gameBoard, true);
     this.startShipsProcess();
     this.getCoordinate();
   }
 
   //create game board
 
-  createGrid(size) {
-    let grid = [];
+  createBoard(size) {
+    let board = [];
     for (let i = 0; i < size; i++) {
-      grid[i] = [];
+      board[i] = [];
       for (let j = 0; j < size; j++) {
-        grid[i][j] = "-";
+        board[i][j] = "-";
       }
     }
-    return grid;
+    return board;
   }
 
   //print game board
 
-  printGrid(grid, isEnemy = false) {
-    const headers = this.createHeaders(grid.length); //x-axis
+  printBoard(board, isEnemy = false) {
+    const headers = this.createHeaders(board.length); //x-axis
     console.log(headers);
-    for (let i = 0; i < grid.length; i++) {
+    for (let i = 0; i < board.length; i++) {
       let alpha = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
       let rowStr = alpha[i] + " ";
-      for (let cell of grid[i]) {
+      for (let cell of board[i]) {
         if (isEnemy && cell == "S") {
           rowStr += "- ";
         } else {
@@ -77,7 +77,7 @@ class Game {
 
   startShipsProcess() {
     for (const ship of this.ships) {
-      this.generateRandomLocation(this.gameBoard, this.gridSize, ship);
+      this.generateRandomLocation(this.gameBoard, this.boardSize, ship);
     }
     console.table(this.gameBoard);
   }
@@ -86,7 +86,7 @@ class Game {
     return Math.floor(Math.random() * Math.floor(max));
   }
 
-  generateRandomLocation(grid, max, ship) {
+  generateRandomLocation(board, max, ship) {
     let didPlace = false;
     let directionString;
     let valid;
@@ -98,7 +98,7 @@ class Game {
       [valid, directionString] = this.generateRandomDirection(x, y, ship);
 
       if (valid) {
-        this.placeShip(x, y, "S", grid, directionString, ship);
+        this.placeShip(x, y, "S", board, directionString, ship);
         didPlace = true;
       }
     }
@@ -168,30 +168,30 @@ class Game {
     }
   }
 
-  placeShip(x, y, c, grid, direction, ship) {
+  placeShip(x, y, c, board, direction, ship) {
     // let direction;
 
     if (direction === "right") {
       for (let i = 0; i < ship.size; i++) {
-        grid[y][x + i] = c;
+        board[y][x + i] = c;
 
         ship.coordinates.push(`${x + i}-${y}`);
       }
     } else if (direction === "left") {
       for (let i = 0; i < ship.size; i++) {
-        grid[y][x - i] = c;
+        board[y][x - i] = c;
 
         ship.coordinates.push(`${x - i}-${y}`);
       }
     } else if (direction === "down") {
       for (let i = 0; i < ship.size; i++) {
-        grid[y + i][x] = c;
+        board[y + i][x] = c;
 
         ship.coordinates.push(`${x}-${y + i}`);
       }
     } else if (direction === "up") {
       for (let i = 0; i < ship.size; i++) {
-        grid[y - i][x] = c;
+        board[y - i][x] = c;
 
         ship.coordinates.push(`${x}-${y - i}`);
       }
@@ -237,10 +237,10 @@ class Game {
 
   //game play
 
-  trackShipSunkCount(y, x, grid) {
+  trackShipSunkCount(y, x, board) {
     for (const ship of this.ships) {
       if (ship.coordinates.includes(`${x}-${y}`)) {
-        if (grid[y][x] === "X") {
+        if (board[y][x] === "X") {
           ship.size--;
           if (ship.size === 0) {
             this.shipCount--;
@@ -250,7 +250,7 @@ class Game {
               console.log(
                 `Hit. You have sunk a battleship. ${this.shipCount} ships remaining.`
               );
-              this.printGrid(grid, true);
+              this.printBoard(board, true);
               this.drawBreak();
               this.getCoordinate();
             }
@@ -258,7 +258,7 @@ class Game {
             console.log(
               `Hit! The ship is still standing! There are ${this.shipCount} remaining!`
             );
-            this.printGrid(grid, true);
+            this.printBoard(board, true);
             this.drawBreak();
             this.getCoordinate();
           }
@@ -267,17 +267,17 @@ class Game {
     }
   }
 
-  attackPlay(y, x, grid) {
-    if (grid[y][x] == "S") {
-      (grid[y][x] = "X"), this.trackShipSunkCount(y, x, grid);
+  attackPlay(y, x, board) {
+    if (board[y][x] == "S") {
+      (board[y][x] = "X"), this.trackShipSunkCount(y, x, board);
       if (this.shipCount === 0) {
         this.endGame();
       }
-    } else if (grid[y][x] == "-") {
-      grid[y][x] = "O";
+    } else if (board[y][x] == "-") {
+      board[y][x] = "O";
       return (
         console.log("You have missed!"),
-        this.printGrid(grid, true),
+        this.printBoard(board, true),
         this.drawBreak(),
         this.getCoordinate()
       );
