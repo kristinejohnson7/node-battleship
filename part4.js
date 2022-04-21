@@ -5,7 +5,9 @@ class Game {
     this.myGameBoard = [];
     this.computerGameBoard = [];
     this.strikeLocation = [];
-    this.shipCount = 5;
+    this.myShipCount = 5;
+    this.computerShipCount = 5;
+    this.computerAttackLog = [];
     this.myShips = [
       { name: "destroyer", size: 2, coordinates: [] },
       { name: "cruiser1", size: 3, coordinates: [] },
@@ -36,31 +38,31 @@ class Game {
     this.printGrid(this.computerGameBoard, true);
     this.startShipsProcess(this.myShips, this.myGameBoard);
     this.startShipsProcess(this.computerShips, this.computerGameBoard);
-    this.getCoordinate();
+    this.strikeLoop();
   }
 
   //create game board
 
   createGrid(size) {
-    let grid = [];
+    let board = [];
     for (let i = 0; i < size; i++) {
-      grid[i] = [];
+      board[i] = [];
       for (let j = 0; j < size; j++) {
-        grid[i][j] = "-";
+        board[i][j] = "-";
       }
     }
-    return grid;
+    return board;
   }
 
   //print game board
 
-  printGrid(grid, isEnemy = false) {
-    const headers = this.createHeaders(grid.length); //x-axis
+  printGrid(board, isEnemy = false) {
+    const headers = this.createHeaders(board.length); //x-axis
     console.log(headers);
-    for (let i = 0; i < grid.length; i++) {
+    for (let i = 0; i < board.length; i++) {
       let alpha = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
       let rowStr = alpha[i] + " ";
-      for (let cell of grid[i]) {
+      for (let cell of board[i]) {
         if (isEnemy && cell == "S") {
           rowStr += "- ";
         } else {
@@ -89,7 +91,6 @@ class Game {
     for (const ship of ships) {
       this.generateRandomLocation(board, this.gridSize, ship);
     }
-    console.table(board);
   }
 
   getRandomInt(max) {
@@ -214,7 +215,7 @@ class Game {
 
   //convert strike coordinate letter to number
 
-  getCoordinate() {
+  getCoordinate(board) {
     this.strikeLocation = rs.question(
       `Enter a location to strike i.e., 'A2'. `,
       {
@@ -241,70 +242,119 @@ class Game {
 
     return (
       this.strikeLocation.splice(0, 1, acc),
-      this.attackPlay(this.strikeLocation[0], this.strikeLocation[1], board)
+      this.attackPlay(
+        this.strikeLocation[0],
+        this.strikeLocation[1],
+        this.computerGameBoard
+      )
     );
+  }
+
+  computerStrike(board, max) {
+    let a = Math.floor(Math.random() * Math.floor(max));
+    let b = Math.floor(Math.random() * Math.floor(max));
+    if (this.computerAttackLog.includes(`${a}-${b}`)) {
+      this.computerStrike(this.myGameBoard, this.gridSize);
+    } else {
+      this.computerAttackLog.push(`${a}-${b}`);
+      this.computerAttack(a, b, board);
+    }
+  }
+
+  strikeLoop() {
+    while (this.computerShipCount > 0 && this.myShipCount > 0) {
+      this.computerStrike(this.myGameBoard, this.gridSize);
+      this.getCoordinate(this.computerGameBoard);
+    }
   }
 
   //game play
 
-  trackShipSunkCount(y, x, grid) {
-    for (const ship of this.ships) {
-      if (ship.coordinates.includes(`${x}-${y}`)) {
-        if (grid[y][x] === "X") {
+  trackMySunkShips(b, a, board, ships) {
+    for (const ship of ships) {
+      if (ship.coordinates.includes(`${a}-${b}`)) {
+        if (board[b][a]) {
           ship.size--;
+
+          // this.printGrid(this.myGameBoard, true);
           if (ship.size === 0) {
-            this.shipCount--;
-            if (this.shipCount === 0) {
-              this.endGame();
-            } else {
-              console.log(
-                `Hit. You have sunk a battleship. ${this.shipCount} ships remaining.`
-              );
-              this.printGrid(grid, true);
-              this.drawBreak();
-              this.getCoordinate();
-            }
-          } else {
+            this.myShipCount--;
             console.log(
-              `Hit! The ship is still standing! There are ${this.shipCount} remaining!`
+              `Computer has hit a ship. ${this.myShipCount} remaining.`
             );
-            this.printGrid(grid, true);
-            this.drawBreak();
-            this.getCoordinate();
+            if (this.myShipCount === 0) {
+              console.log("Lose it all!! Better luck next time human.");
+              this.endGame();
+            }
           }
         }
       }
     }
   }
 
-  attackPlay(y, x, grid) {
-    if (grid[y][x] == "S") {
-      (grid[y][x] = "X"), this.trackShipSunkCount(y, x, grid);
-      if (this.shipCount === 0) {
-        this.endGame();
+  trackShipSunkCount(y, x, board, ships) {
+    for (const ship of ships) {
+      if (ship.coordinates.includes(`${x}-${y}`)) {
+        if (board[y][x] === "X") {
+          ship.size--;
+          if (ship.size === 0) {
+            this.computerShipCount--;
+            if (this.computerShipCount === 0) {
+              console.log("Victory!! Take that computer!");
+              this.endGame();
+            } else {
+              console.log(
+                `Hit. You have sunk a battleship. ${this.computerShipCount} ships remaining.`
+              );
+              this.printGrid(board, true);
+              this.drawBreak();
+              this.strikeLoop();
+            }
+          } else {
+            console.log(
+              `Hit! The ship is still standing! There are ${this.computerShipCount} remaining!`
+            );
+            this.printGrid(board, true);
+            this.drawBreak();
+            this.strikeLoop();
+          }
+        }
       }
-    } else if (grid[y][x] == "-") {
-      grid[y][x] = "O";
-      return (
-        console.log("You have missed!"),
-        this.printGrid(grid, true),
-        this.drawBreak(),
-        this.getCoordinate()
-      );
+    }
+  }
+
+  computerAttack(b, a, board) {
+    if (board[b][a] === "S") {
+      board[b][a] = "X";
+      this.trackMySunkShips(b, a, board, this.myShips);
+    } else if (board[b][a] === "-") {
+      board[b][a] = "O";
+      // this.printGrid(this.myGameBoard, true);
+      return false;
+    } //else {
+    //return this.printGrid(this.myGameBoard, true);
+    //}
+  }
+
+  attackPlay(y, x, board) {
+    if (board[y][x] == "S") {
+      board[y][x] = "X";
+      this.trackShipSunkCount(y, x, board, this.computerShips);
+    } else if (board[y][x] == "-") {
+      board[y][x] = "O";
+      console.log("You have missed!");
+      this.printGrid(board, true);
+      this.drawBreak();
+      this.strikeLoop();
     } else {
-      return (
-        console.log("You have already picked this location. Miss!"),
-        this.getCoordinate()
-      );
+      console.log("You have already picked this location. Miss!");
+      this.printGrid(board, true);
+      this.strikeLoop();
     }
   }
 
   endGame() {
-    if (
-      rs.keyInYN(
-        "You have destroyed all battleships. Would you like to play again? Y/N"
-      )
-    ) {
+    if (rs.keyInYN("Would you like to play again? Y/N")) {
       this.beginGame();
     } else {
       console.log("See you next time!");
