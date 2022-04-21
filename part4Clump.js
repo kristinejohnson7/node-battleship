@@ -363,18 +363,6 @@ class Game {
   }
 }
 
-class User extends Game {
-  constructor() {
-    this.whatever = 0;
-  }
-}
-
-class Computer extends Game {
-  constructor() {
-    this.whatever = 0;
-  }
-}
-
 const newGame = new Game();
 
 newGame.beginGame();
