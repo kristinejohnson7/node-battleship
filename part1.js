@@ -2,11 +2,8 @@ var rs = require("readline-sync");
 
 class Game {
   constructor() {
-    this.gridSize = 3;
-    this.myGrid = this.createGrid(this.gridSize);
-    this.coordinate = [];
+    this.boardSize = 3;
     this.shipCount = 2;
-    this.attempts = [];
     this.shipLocations = {};
   }
 
@@ -14,36 +11,35 @@ class Game {
 
   beginGame() {
     rs.keyIn("Press any key to start the game. ");
+    this.myBoard = this.createBoard(this.boardSize);
     this.placeShips(this.shipCount);
-    this.getCoordinate();
+    this.getStrike();
   }
 
-  createGrid(size) {
-    let grid = [];
+  createBoard(size) {
+    let board = [];
     for (let i = 0; i < size; i++) {
-      grid[i] = [];
+      board[i] = [];
       for (let j = 0; j < size; j++) {
-        grid[i][j] = "-";
+        board[i][j] = "-";
       }
     }
-    return grid;
+    return board;
   }
 
   //convert letter to number
 
-  getCoordinate() {
-    this.coordinate = rs.question(`Enter a location to strike i.e., 'A2'. `, {
+  getStrike() {
+    this.strike = rs.question(`Enter a location to strike i.e., 'A2'. `, {
       limit: /^[abc][123]$/i,
       limitMessage: "That is not a proper location. Try again.",
     });
-    this.coordinate = this.coordinate.split("");
-    this.convertNumber(this.coordinate[1], 1);
-    this.sumChars(this.coordinate[0]);
+    this.strike = this.strike.split("");
+    this.convertNumber(this.strike[1], 1);
+    this.sumChars(this.strike[0]);
   }
 
-  convertNumber(n, i) {
-    this.coordinate[1] = n - i;
-  }
+  convertNumber = (n, i) => (this.strike[1] = n - i);
 
   sumChars(s) {
     var i,
@@ -54,24 +50,22 @@ class Game {
     }
 
     return (
-      this.coordinate.splice(0, 1, acc),
-      this.attackPlay(this.coordinate[0], this.coordinate[1], this.myGrid)
+      this.strike.splice(0, 1, acc),
+      this.attackPlay(this.strike[0], this.strike[1], this.myBoard)
     );
   }
 
   // place ship
 
-  placeShips(ships) {
+  placeShips = (ships) => {
     for (let i = 0; i < ships; i++) {
-      this.generateRandomLocation("S", this.myGrid, this.gridSize);
+      this.generateRandomLocation("S", this.myBoard, this.boardSize);
     }
-  }
+  };
 
-  getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
-  }
+  getRandomInt = (max) => Math.floor(Math.random() * Math.floor(max));
 
-  generateRandomLocation(c, grid, max) {
+  generateRandomLocation(c, board, max) {
     let didPlace = false;
     while (!didPlace) {
       let x = this.getRandomInt(max);
@@ -79,7 +73,7 @@ class Game {
       let y = this.getRandomInt(max);
 
       if (!this.shipLocations[`${x}-${y}`]) {
-        this.placeCharacterAtLocation(x, y, c, grid);
+        this.placeCharacterAtLocation(x, y, c, board);
 
         didPlace = true;
         this.shipLocations[`${x}-${y}`] = true;
@@ -87,16 +81,15 @@ class Game {
     }
   }
 
-  placeCharacterAtLocation(x, y, c, grid) {
-    grid[y][x] = c;
-    // console.table(grid);
+  placeCharacterAtLocation(x, y, c, board) {
+    board[y][x] = c;
   }
 
   //game play
 
-  attackPlay(y, x, grid) {
-    if (grid[y][x] == "S") {
-      grid[y][x] = "!";
+  attackPlay(y, x, board) {
+    if (board[y][x] == "S") {
+      board[y][x] = "!";
 
       this.shipCount--;
       if (this.shipCount === 0) {
@@ -107,16 +100,16 @@ class Game {
           console.log(
             `Hit. You have sunk a battleship. ${this.shipCount} ship remaining.`
           ),
-          this.getCoordinate()
+          this.getStrike()
         );
-    } else if (grid[y][x] == "-") {
-      grid[y][x] = "x";
-      return false, console.log("You have missed!"), this.getCoordinate();
+    } else if (board[y][x] == "-") {
+      board[y][x] = "x";
+      return false, console.log("You have missed!"), this.getStrike();
     } else {
       return (
         false,
         console.log("You have already picked this location. Miss!"),
-        this.getCoordinate()
+        this.getStrike()
       );
     }
   }
@@ -127,7 +120,8 @@ class Game {
         "You have destroyed all battleships. Would you like to play again? Y/N"
       )
     ) {
-      this.beginGame();
+      let anotherGame = new Game();
+      anotherGame.beginGame();
     } else {
       console.log("See you next time!");
       process.exit();
